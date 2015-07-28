@@ -1,0 +1,8 @@
+*.log
+*.exe
+*.pdb
+
+dub.selections.json
+
+.dub
+/coverage

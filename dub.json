@@ -1,0 +1,25 @@
+{
+  "name": "teleherald",
+  "description": "Telegram notification bot.",
+  "copyright": "Copyright © 2015, Alexei Bykov",
+  "authors": ["Alexei Bykov"],
+  "dependencies": {
+    "dunit": "~>1.0.10"
+  },
+  "configurations": [
+    {
+      "name": "application",
+      "targetType": "executable",
+      "platforms": ["windows"],
+      "mainSourceFile": "applicationEntry.d"
+    },
+    {
+      "name": "unittests",
+      "targetName": "tests",
+      "targetType": "executable",
+      "platforms": ["windows"],
+      "mainSourceFile": "testsEntry.d",
+      "postGenerateCommands": ["cv2pdb tests.exe"]
+    }
+  ]
+}
