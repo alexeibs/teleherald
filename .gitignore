@@ -1,6 +1,7 @@
 *.log
 *.exe
 *.pdb
+*.dmp
 
 dub.selections.json
 

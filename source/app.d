@@ -6,16 +6,16 @@ void startApp(App app) {
   app.start();
 }
 
-class TestApp : App {
-  static bool started = false;
-
-  void start() {
-    started = true;
-  }
-}
-
 unittest {
   import dunit.toolkit;
+
+  static class TestApp : App {
+    static bool started = false;
+
+    void start() {
+      started = true;
+    }
+  }
 
   startApp(new TestApp);
 

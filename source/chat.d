@@ -1,68 +1,90 @@
 import server;
+import recipients;
 
 interface Chat {
   string token() const; // internal unique identifier
-  bool isActive() const; // chat is inactive if it doesn't have Telegram Chat ID
-  int id() const;
+  ChatId id() const;
   void sendMessage(string message);
   void subscribe(MessageSink messageSink);
-  // TODO remove later
-  void activate(int chatId);
 }
 
-final class RealChat : Chat {
-  this(string token) {
+Chat createChat(string token, ChatId id, Server server) {
+  return new ChatImpl(token, id, server);
+}
+
+private class ChatImpl : Chat {
+  this(string token, ChatId id, Server server) {
     token_ = token;
+    chatId_ = id;
+    recipients_ = createRecipients();
+    server_ = server;
+    server_.subscribe(id, &this.processMessage);
   }
 
   string token() const {
     return token_;
   }
 
-  bool isActive() const {
-    return isActive_;
-  }
-
-  // TODO remove later
-  void activate(int chatId) {
-    if (!isActive_) {
-      chatId_ = chatId;
-      isActive_ = true;
-    }
-  }
-
-  int id() const {
+  ChatId id() const {
     return chatId_;
   }
 
-  // network interface is required for these methods
-  void sendMessage(string message) {}
-  void subscribe(MessageSink messageSink) {}
+  void sendMessage(string message) {
+    server_.sendMessage(chatId_, message);
+  }
+
+  void subscribe(MessageSink recipient) {
+    recipients_.subscribe(recipient);
+  }
+
+  private void processMessage(string message) {
+    recipients_.broadcast(message);
+  }
 
   private string token_;
-  private int chatId_;
-  private bool isActive_;
-}
-
-Chat createChat(string token) {
-  return new RealChat(token);
+  private ChatId chatId_;
+  private Server server_;
+  private Recipients recipients_;
 }
 
 unittest {
   import dunit.toolkit;
 
-  string TEST_TOKEN = "token";
-  Chat chat = createChat(TEST_TOKEN);
+  static class TestServer : Server {
+    static ChatId lastSender = 0;
+    static string lastSentMessage;
+    static ChatId lastSubscribedChat = 0;
+    static MessageSink lastMessageSink = null;
 
-  assertEqual(TEST_TOKEN, chat.token());
-  assertFalse(chat.isActive());
-  assertEqual(0, chat.id());
+    void subscribeToEverything(UpdateMessageSink sink) {}
+    void subscribe(ChatId chat, MessageSink sink) {
+      lastSubscribedChat = chat;
+      lastMessageSink = sink;
+      subscribeToEverything(null);
+    }
+    void sendMessage(ChatId chat, string message) {
+      lastSender = chat;
+      lastSentMessage = message;
+    }
 
-  const int CHAT_ID = 37;
-  chat.activate(CHAT_ID);
-  assertTrue(chat.isActive());
-  assertEqual(CHAT_ID, chat.id());
+    static void sendMessageToSubcriber(string message) {
+      lastMessageSink(message);
+    }
+  }
 
-  chat.activate(CHAT_ID + 100); // does nothing second time
-  assertEqual(CHAT_ID, chat.id());
+  Chat chat = createChat("token", 38, new TestServer);
+
+  assertEqual(chat.token(), "token");
+  assertEqual(chat.id(), 38);
+  assertEqual(TestServer.lastSubscribedChat, chat.id());
+
+  chat.sendMessage("send message to server");
+  assertEqual(TestServer.lastSentMessage, "send message to server");
+
+  string messageFromChat;
+  chat.subscribe(delegate(string message) {
+    messageFromChat = message;
+  });
+  TestServer.sendMessageToSubcriber("message from server");
+  assertEqual(messageFromChat, "message from server");
 }

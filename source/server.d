@@ -1,14 +1,12 @@
-alias MessageSink = void delegate(string message);
-alias UpdateMessageSink = void delegate(ChatContext chat, string message);
+import recipients;
 
-struct ChatContext {
-  bool isUser;
-  int id;
-  string name;
-}
+alias ChatId = int;
+
+alias MessageSink = void delegate(string message);
+alias UpdateMessageSink = void delegate(ChatId chat, string message);
 
 interface Server {
-  void subscribe(UpdateMessageSink sink);
-  void subscribe(ChatContext chat, MessageSink sink);
-  void sendMessage(ChatContext chat, string message);
+  void subscribeToEverything(UpdateMessageSink sink);
+  void subscribe(ChatId chat, MessageSink sink);
+  void sendMessage(ChatId chat, string message);
 }
