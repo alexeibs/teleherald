@@ -10,7 +10,6 @@
     {
       "name": "application",
       "targetType": "executable",
-      "platforms": ["windows"],
       "mainSourceFile": "applicationEntry.d"
     },
     {
