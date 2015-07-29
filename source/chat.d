@@ -1,11 +1,11 @@
-alias MessageReader = void delegate(string message);
+import server;
 
 interface Chat {
   string token() const; // internal unique identifier
   bool isActive() const; // chat is inactive if it doesn't have Telegram Chat ID
   int id() const;
   void sendMessage(string message);
-  void subscribe(MessageReader messageReader);
+  void subscribe(MessageSink messageSink);
   // TODO remove later
   void activate(int chatId);
 }
@@ -37,7 +37,7 @@ final class RealChat : Chat {
 
   // network interface is required for these methods
   void sendMessage(string message) {}
-  void subscribe(MessageReader messageReader) {}
+  void subscribe(MessageSink messageSink) {}
 
   private string token_;
   private int chatId_;
