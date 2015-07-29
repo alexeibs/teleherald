@@ -6,6 +6,7 @@
   "dependencies": {
     "dunit": "~>1.0.10"
   },
+  "targetPath": "build",
   "configurations": [
     {
       "name": "application",
@@ -18,7 +19,7 @@
       "targetType": "executable",
       "platforms": ["windows"],
       "mainSourceFile": "testsEntry.d",
-      "postGenerateCommands": ["cv2pdb tests.exe"]
+      "postGenerateCommands": ["cv2pdb build\\tests.exe"]
     }
   ]
 }
