@@ -1,5 +1,6 @@
 import std.algorithm;
-import server;
+
+import common_types;
 
 interface Recipients {
   void subscribe(MessageSink messageSink);

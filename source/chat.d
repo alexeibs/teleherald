@@ -1,5 +1,6 @@
-import server;
+import common_types;
 import recipients;
+import server;
 
 interface Chat {
   string token() const; // internal unique identifier

@@ -1,9 +1,5 @@
+import common_types;
 import recipients;
-
-alias ChatId = int;
-
-alias MessageSink = void delegate(string message);
-alias UpdateMessageSink = void delegate(ChatId chat, string message);
 
 interface Server {
   void subscribeToEverything(UpdateMessageSink sink);

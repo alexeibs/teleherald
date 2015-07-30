@@ -13,7 +13,7 @@ if exist "%~dp0coverage" (
   rmdir "%~dp0coverage" /s /q
 )
 
-opencppcoverage --sources "%~dp0source" --export_type "html:%~dp0coverage" build\tests.exe
+opencppcoverage --sources "%~dp0source" --modules %~dp0 --export_type "html:%~dp0coverage" build\tests.exe
 
 echo --- Finished ---
 exit /b 0
