@@ -2,6 +2,7 @@
 *.exe
 *.pdb
 *.dmp
+*.json
 
 dub.selections.json
 
