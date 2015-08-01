@@ -108,12 +108,12 @@ unittest {
 
     override uint getNumber() {
       uint n = next[current];
-      current = (current + 1) % next.length;
+      current = (current + 1) % cast(uint)(next.length);
       return n;
     }
 
     private uint[] next;
-    private int current;
+    private uint current;
   }
   auto rng = new FakeRNG;
   auto generator = createTokenGenerator(rng);
