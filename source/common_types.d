@@ -10,3 +10,7 @@ interface ChatServer {
 interface ChatCreator {
   void createNewChat(string token, ChatId id);
 }
+
+interface ActivationView {
+  void show(uint code);
+}
