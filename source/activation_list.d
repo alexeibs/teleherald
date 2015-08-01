@@ -32,7 +32,7 @@ private class ActivationListImpl : ActivationList {
       tokenWithCode.code = tokenGenerator_.getActivationCode();
       tokensByChatNames_[chatName] = tokenWithCode;
 
-      view_.show(tokenWithCode.code);
+      view_.showCode(tokenWithCode.code);
     }
   }
 
@@ -44,6 +44,7 @@ private class ActivationListImpl : ActivationList {
       tokenGenerator_.forgetActivationCode(activationCode);
 
       chatCreator_.createNewChat(chat.token, chatId);
+      view_.showToken(chat.token);
     }
   }
 
@@ -70,17 +71,25 @@ unittest {
   import dunit.toolkit;
 
   static class FakeView : ActivationView {
-    static int callCount;
+    static int codeCount;
     static int lastCode;
-    void show(uint code) {
-      ++callCount;
+    static int tokenCount;
+    static string lastToken;
+
+    void showCode(uint code) {
+      ++codeCount;
       lastCode = code;
+    }
+    void showToken(string token) {
+      ++tokenCount;
+      lastToken = token;
     }
   }
 
   static class FakeCreator : ChatCreator {
     static int callCount;
     static ChatId lastId;
+
     void createNewChat(string token, ChatId id) {
       ++callCount;
       lastId = id;
@@ -90,22 +99,25 @@ unittest {
   auto activationList = createActivationList(new FakeView, new FakeCreator);
 
   activationList.makeActivationCode("chat1");
-  assertEqual(FakeView.callCount, 1);
+  assertEqual(FakeView.codeCount, 1);
 
   activationList.makeActivationCode("chat1"); // does nothing second time
-  assertEqual(FakeView.callCount, 1);
+  assertEqual(FakeView.codeCount, 1);
 
 
   activationList.activateChat("chat2", FakeView.lastCode, 35); // unknown chat
   assertEqual(FakeCreator.callCount, 0);
+  assertEqual(FakeView.tokenCount, 0);
 
   activationList.activateChat("chat1", FakeView.lastCode + 1, 35); // incorrect code
   assertEqual(FakeCreator.callCount, 0);
+  assertEqual(FakeView.tokenCount, 0);
 
   activationList.activateChat("chat1", FakeView.lastCode, 35);
   assertEqual(FakeCreator.callCount, 1);
   assertEqual(FakeCreator.lastId, 35);
+  assertEqual(FakeView.tokenCount, 1);
 
   activationList.makeActivationCode("chat1"); // now we can get a new code
-  assertEqual(FakeView.callCount, 2);
+  assertEqual(FakeView.codeCount, 2);
 }

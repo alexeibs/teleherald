@@ -12,5 +12,6 @@ interface ChatCreator {
 }
 
 interface ActivationView {
-  void show(uint code);
+  void showCode(uint code);
+  void showToken(string token);
 }
