@@ -1,100 +1,101 @@
 import chat;
 import common_types;
-import server;
 
-interface ChatCollection {
-  void add(Chat chat);
-  void remove(Chat chat);
-  Chat findByToken(string token);
-  Chat findById(ChatId id);
+interface ChatCollection : ChatCreator {
+  void sendMessage(string token, string message);
+  void removeChat(ChatId id);
 }
 
-ChatCollection createChatCollection() {
-  return new ChatCollectionImpl;
+ChatCollection createChatCollection(ChatServer chatServer) {
+  return new ChatCollectionImpl(chatServer);
 }
 
 private class ChatCollectionImpl : ChatCollection {
-  void add(Chat chat) {
-    string token = chat.token();
-    int id = chat.id();
-    if (token !in chatsByTokens && id !in chatsByIds) {
-      chatsByTokens[token] = chat;
-      chatsByIds[id] = chat;
+  this(ChatServer chatServer) {
+    chatServer_ = chatServer;
+  }
+
+  void createNewChat(string token, ChatId id) {
+    if (token !in chatsByTokens_ && id !in chatsByIds_) {
+      Chat chat = createChat(token, id);
+      chatsByTokens_[token] = chat;
+      chatsByIds_[id] = chat;
     }
   }
 
-  void remove(Chat chat) {
-    string token = chat.token();
-    int id = chat.id();
-    auto byToken = token in chatsByTokens;
-    auto byId = id in chatsByIds;
-    if (byToken && byId && *byToken == *byId) {
-      chatsByTokens.remove(token);
-      chatsByIds.remove(id);
+  void sendMessage(string token, string message) {
+    auto chat = token in chatsByTokens_;
+    if (chat) {
+      chatServer_.sendMessage(chat.id(), message);
     }
   }
 
-  Chat findByToken(string token) {
-    Chat* chat = token in chatsByTokens;
-    return chat is null ? null : *chat;
+  void removeChat(ChatId id) {
+    auto chat = id in chatsByIds_;
+    if (chat) {
+      chatsByTokens_.remove(chat.token());
+      chatsByIds_.remove(id);
+    }
   }
 
-  Chat findById(ChatId id) {
-    Chat* chat = id in chatsByIds;
-    return chat is null ? null : *chat;
-  }
-
-  private Chat[string] chatsByTokens;
-  private Chat[int] chatsByIds;
+  private Chat[string] chatsByTokens_;
+  private Chat[int] chatsByIds_;
+  private ChatServer chatServer_;
 }
 
 unittest {
   import dunit.toolkit;
 
-  class DummyServer : Server {
-    void subscribeToEverything(UpdateMessageSink sink) {}
-    void subscribe(ChatId chat, MessageSink sink) {
-      subscribeToEverything(null);
-      sendMessage(0, null);
-    }
-    void sendMessage(ChatId chat, string message) {}
-  }
-  auto dummyServer = new DummyServer;
+  static class FakeServer : ChatServer {
+    static string lastMessage;
+    static int lastChat;
 
-  Chat chat1 = createChat("T1", 1, dummyServer);
-  Chat chat2 = createChat("T2", 2, dummyServer);
-  Chat invalidChat = createChat("T1", 2, dummyServer);
-
-  auto chats = createChatCollection();
-
-  void checkChats(Chat[] inside, Chat[] outside) {
-    foreach (Chat chat; inside) {
-      assertEqual(chats.findById(chat.id()), chat);
-      assertEqual(chats.findByToken(chat.token()), chat);
-    }
-    foreach (Chat chat; outside) {
-      assertNull(chats.findById(chat.id()));
-      assertNull(chats.findByToken(chat.token()));
+    void sendMessage(ChatId chat, string message) {
+      lastChat = chat;
+      lastMessage = message;
     }
   }
 
-  checkChats([], [chat1, chat2]);
+  auto chats = createChatCollection(new FakeServer);
 
-  chats.add(chat1);
-  checkChats([chat1], [chat2]);
+  void assertChatExists(ChatId chatId, string token, string message) {
+    FakeServer.lastMessage = null;
+    FakeServer.lastChat = 0;
+    chats.sendMessage(token, message);
+    assertEqual(FakeServer.lastChat, chatId);
+    assertEqual(FakeServer.lastMessage, message);
+  }
 
-  chats.add(chat2);
-  checkChats([chat1, chat2], []);
+  void assertNoChat(string token, string message) {
+    FakeServer.lastMessage = null;
+    FakeServer.lastChat = 0;
+    chats.sendMessage(token, message);
+    assertEqual(FakeServer.lastChat, 0);
+    assertNull(FakeServer.lastMessage);
+  }
 
-  chats.add(invalidChat);
-  checkChats([chat1, chat2], []);
+  assertNoChat("t1", "ping");
+  chats.createNewChat("t1", 1);
+  assertChatExists(1, "t1", "ping1");
 
-  chats.remove(invalidChat);
-  checkChats([chat1, chat2], []);
+  chats.createNewChat("t2", 2);
+  assertChatExists(2, "t2", "ping2");
 
-  chats.remove(chat1);
-  checkChats([chat2], [chat1]);
+  chats.createNewChat("t3", 1); // id already exists
+  assertNoChat("t3", "ping3");
 
-  chats.remove(chat2);
-  checkChats([], [chat1, chat2]);
+  chats.createNewChat("t2", 3); // token already exists
+  assertChatExists(2, "t2", "ping4");
+  
+  chats.removeChat(5);
+  assertChatExists(2, "t2", "ping5");
+  assertChatExists(1, "t1", "ping6");
+
+  chats.removeChat(1);
+  assertNoChat("t1", "ping7");
+  assertChatExists(2, "t2", "ping8");
+
+  chats.removeChat(2);
+  assertNoChat("t1", "ping9");
+  assertNoChat("t2", "ping10");
 }
