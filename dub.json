@@ -4,7 +4,8 @@
   "copyright": "Copyright © 2015, Alexei Bykov",
   "authors": ["Alexei Bykov"],
   "dependencies": {
-    "dunit": "~>1.0.10"
+    "dunit": "~>1.0.10",
+    "vibe-d": "~>0.7.23"
   },
   "targetPath": "build",
   "configurations": [
@@ -21,5 +22,6 @@
       "mainSourceFile": "testsEntry.d",
       "postGenerateCommands": ["cv2pdb build\\tests.exe"]
     }
-  ]
+  ],
+  "versions": ["VibeCustomMain"]
 }
