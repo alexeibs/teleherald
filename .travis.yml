@@ -1,7 +1,8 @@
 language: d
 
 node_js:
-    - "0.10"
+  - "0.10"
+
 before_script:
   - npm install -g grunt-cli
   - npm install -g bower
@@ -9,5 +10,8 @@ before_script:
   - cd client
   - npm install
   - bower install
-  - grunt
   - cd ..
+
+script:
+  - grunt
+  - dub test --compiler=${DC}
