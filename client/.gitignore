@@ -1,0 +1,5 @@
+/vendor
+/coverage
+/node_modules
+/.grunt
+_SpecRunner.html

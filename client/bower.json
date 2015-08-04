@@ -1,0 +1,12 @@
+{
+  "name": "teleherald",
+  "version": "0.0.0",
+  "description": "Teleherald browser side",
+  "keywords": [
+    "AMD"
+  ],
+  "devDependencies": {
+    "react": "~0.13.3",
+    "requirejs": "~2.1.20"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "teleherald",
+  "version": "0.0.0",
+  "description": "Teleherald browser side",
+  "author": "Alexei Bykov",
+  "license": "MIT",
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-jshint": "^0.11.2",
+    "grunt-jscs": "^2.0.0",
+    "grunt-contrib-jasmine": "^0.9.1",
+    "grunt-template-jasmine-requirejs": "^0.2.3",
+    "grunt-contrib-copy": "^0.8.0",
+    "esprima-fb": "^15001.1001.0-dev-harmony-fb",
+    "requirejs": "^2.1.20",
+    "grunt-contrib-watch": "^0.6.1",
+    "karma": "^0.13.4",
+    "karma-coverage": "^0.4.2",
+    "jasmine-core": "^2.3.4",
+    "karma-jasmine": "^0.3.6",
+    "karma-requirejs": "^0.2.2",
+    "grunt-contrib-clean": "^0.6.0"
+  }
+}

@@ -2,10 +2,12 @@
 *.exe
 *.pdb
 *.dmp
-*.json
 
 dub.selections.json
+teleherald.json
 
 .dub
 /coverage
 /build
+/public
+
