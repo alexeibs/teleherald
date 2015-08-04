@@ -6,8 +6,5 @@ define(['scripts/activation'], function(activation) {
       var obj = new activation.TestClass(42);
       expect(obj.value()).toBe(42);
     });
-    it('Fail Travis build', function() {
-      expect(false).toBe(true);
-    });
   });
 });
