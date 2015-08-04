@@ -13,5 +13,5 @@ before_script:
   - cd ..
 
 script:
-  - cd client && grunt && cd ..
+  - cd client && grunt && cd .. || cd .. && false
   - dub test --compiler=${DC}
