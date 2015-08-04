@@ -7,11 +7,14 @@
   <script src="http://localhost:35729/livereload.js"></script>
 </head>
 <body>
-  <div id="content">Hello!</div>
+  <div id="content"></div>
   <script>
-    require(['scripts/activation'], function(activation) {
+    require(['scripts/activation', 'scripts/foo'], function(activation, foo) {
       var testObject = new activation.TestClass(42);
       console.log('TestObject value: ', testObject.value());
+
+      var fooObject = foo.create(document.getElementById('content'));
+      fooObject.setState({title: 'Custom title'});
     });
   </script>
 </body>

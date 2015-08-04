@@ -3,15 +3,31 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     jshint: {
-      files: ['gruntfile.js', 'scripts/**/*.js', 'specs/**/*.js'],
+      files: ['gruntfile.js', 'scripts/**/*.js', 'specs/**/*.js', '!scripts/**/*.jsx.js'],
       options: {
         jshintrc: '.jshintrc'
       }
     },
     jscs: {
-      src: ['gruntfile.js', 'scripts/**/*.js', 'specs/**/*.js'],
+      src: ['gruntfile.js', 'scripts/**/*.js', 'specs/**/*.js', 'scripts/**/*.jsx', '!scripts/**/*.jsx.js'],
       options: {
         config: '.jscsrc'
+      }
+    },
+    react: {
+      all: {
+        options: {
+          sourceMap: true
+        },
+        files: [
+          {
+            expand: true,
+            cwd: 'scripts/',
+            src: ['**/*.jsx'],
+            dest: 'scripts/',
+            ext: '.jsx.js'
+          }
+        ]
       }
     },
     jasmine: {
@@ -19,7 +35,14 @@ module.exports = function(grunt) {
       options: {
         specs: 'specs/**/*-spec.js',
         keepRunner: true,
-        template: require('grunt-template-jasmine-requirejs')
+        template: require('grunt-template-jasmine-requirejs'),
+        templateOptions: {
+          requireConfig: {
+            callback: function() {
+              require(['vendor/es5-shim/es5-shim']);
+            }
+          }
+        }
       }
     },
     clean: {
@@ -64,9 +87,13 @@ module.exports = function(grunt) {
         files: ['vendor/**/*.js'],
         tasks: ['tests', 'copy:vendor']
       },
+      react: {
+        files: ['scripts/**/*.jsx'],
+        tasks: ['react']
+      },
       scripts: {
         files: ['scripts/**/*.js'],
-        tasks: ['tests', 'copy:scripts']
+        tasks: ['jshint', 'jscs', 'jasmine', 'copy:scripts']
       },
       styles: {
         files: ['styles/**/*.css'],
@@ -85,7 +112,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-react');
 
-  grunt.registerTask('tests', ['jshint', 'jscs', 'jasmine']);
+  grunt.registerTask('tests', ['jshint', 'jscs', 'react', 'jasmine']);
   grunt.registerTask('default', ['tests', 'clean', 'copy']);
 };
