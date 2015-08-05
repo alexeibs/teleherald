@@ -42,6 +42,18 @@ define(['scripts/server'], function(Server) {
       expect(testCallback).toHaveBeenCalledWith(null, 'test error description');
     });
 
+    it('Invalid JSON response', function() {
+      var testCallback = jasmine.createSpy('testCallback');
+      var server = Server.create(FakeRequest, '/base/path');
+      var request = server.get('test', testCallback);
+
+      request.readyState = 4;
+      request.status = 200;
+      request.responseText = 'invalid JSON';
+      request.onreadystatechange();
+      expect(testCallback).toHaveBeenCalledWith(null, jasmine.any(String));
+    });
+
     it('POST request without callback', function() {
       var server = Server.create(FakeRequest, '/base/path');
       var request = server.post('test', '{"test": 10}');

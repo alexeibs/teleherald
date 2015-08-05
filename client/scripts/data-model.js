@@ -23,7 +23,7 @@ define([], function() {
   };
 
   DataModel.prototype.addNewChat = function(chatName) {
-    this._server.post('activationList', {}, {chatName: chatName});
+    this._server.post('activationList', {chatName: chatName});
   };
 
   DataModel.prototype._askForActivationList = function() {
@@ -31,7 +31,7 @@ define([], function() {
       return;
     }
     this._waitingForResponse = true;
-    this._server.get('activationList', {}, this._takeActivationList.bind(this));
+    this._server.get('activationList', this._takeActivationList.bind(this));
   };
 
   DataModel.prototype._takeActivationList = function(data, error) {

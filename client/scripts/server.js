@@ -15,9 +15,9 @@ define([], function() {
 
   Server.prototype._sendRequest = function(requestType, query, postData, callback) {
     var request = new this._RequestClass();
+    request.open(requestType, this._baseUrl + '/' + query, true);
     request.setRequestHeader('Content-Type', 'application/json');
     request.onreadystatechange = this._onReadyStateChange.bind(this, request, callback);
-    request.open(requestType, this._baseUrl + '/' + query, true);
     if (postData === null) {
       request.send();
     } else {
@@ -30,11 +30,19 @@ define([], function() {
     if (request.readyState != 4 || callback === undefined) {
       return;
     }
-
     if (request.status != 200) {
       callback(null, request.statusText);
+
     } else {
-      callback(JSON.parse(request.responseText));
+      var response;
+      try {
+        response = JSON.parse(request.responseText);
+
+      } catch (e) {
+        callback(null, e.toString());
+        return;
+      }
+      callback(response);
     }
   };
 

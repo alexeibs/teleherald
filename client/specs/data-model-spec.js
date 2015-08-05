@@ -6,7 +6,7 @@ define(['scripts/data-model'], function(DataModel) {
   function createFakeServer() {
     var getCallback = null;
     var server = {
-      get: function(query, params, callback) {
+      get: function(query, callback) {
         getCallback = callback;
       },
       sendGetResponse: function(response, error) {
@@ -41,7 +41,7 @@ define(['scripts/data-model'], function(DataModel) {
       jasmine.clock().tick(101);
       expect(dataModel.getActivationList()).toEqual([]);
       expect(server.get.calls.count()).toBe(1);
-      expect(server.get.calls.mostRecent().args).toEqual(['activationList', {}, jasmine.any(Function)]);
+      expect(server.get.calls.mostRecent().args).toEqual(['activationList', jasmine.any(Function)]);
 
       jasmine.clock().tick(100);
       expect(dataModel.getActivationList()).toEqual([]);
@@ -56,7 +56,7 @@ define(['scripts/data-model'], function(DataModel) {
       jasmine.clock().tick(100);
       expect(dataModel.getActivationList()).toEqual(testData);
       expect(server.get.calls.count()).toBe(2);
-      expect(server.get.calls.mostRecent().args).toEqual(['activationList', {}, jasmine.any(Function)]);
+      expect(server.get.calls.mostRecent().args).toEqual(['activationList', jasmine.any(Function)]);
 
       spyOn(console, 'error');
       server.sendGetResponse(null, 'invalid request');
@@ -66,7 +66,7 @@ define(['scripts/data-model'], function(DataModel) {
 
       dataModel.addNewChat('New chat');
       expect(server.post.calls.count()).toBe(1);
-      expect(server.post.calls.mostRecent().args).toEqual(['activationList', {}, {chatName: 'New chat'}]);
+      expect(server.post.calls.mostRecent().args).toEqual(['activationList', {chatName: 'New chat'}]);
 
       dataModel.stopPolling();
     });
