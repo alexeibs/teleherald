@@ -83,25 +83,21 @@ module.exports = function(grunt) {
       options: {
         livereload: true,
       },
-      vendor: {
-        files: ['vendor/**/*.js'],
-        tasks: ['tests', 'copy:vendor']
-      },
       react: {
         files: ['scripts/**/*.jsx'],
         tasks: ['react']
       },
       scripts: {
-        files: ['scripts/**/*.js'],
-        tasks: ['jshint', 'jscs', 'jasmine', 'copy:scripts']
+        files: ['vendor/**/*.js', 'scripts/**/*.js', 'specs/**/*-spec.js'],
+        tasks: ['tests']
       },
-      styles: {
-        files: ['styles/**/*.css'],
-        tasks: ['tests', 'copy:styles']
-      },
-      entry: {
-        files: ['test.html'],
+      others: {
+        files: ['test.html', 'styles/**/*.css'],
         tasks: []
+      },
+      self: {
+        files: ['gruntfile.js'],
+        tasks: ['react'] // react will cause tests then
       }
     }
   });
@@ -114,6 +110,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-react');
 
-  grunt.registerTask('tests', ['jshint', 'jscs', 'react', 'jasmine']);
-  grunt.registerTask('default', ['tests', 'clean', 'copy']);
+  grunt.registerTask('tests', ['jshint', 'jscs', 'jasmine']);
+  grunt.registerTask('default', ['react', 'tests', 'clean', 'copy']);
 };

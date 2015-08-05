@@ -12,7 +12,7 @@ module.exports = function(config) {
     preprocessors: {
       'scripts/**/*.js': ['coverage']
     },
-    reporters: ['coverage'],
+    reporters: ['progress', 'coverage'],
     coverageReporter: {
       type : 'html',
       dir : 'coverage/'
