@@ -9,12 +9,8 @@
 <body>
   <div id="content"></div>
   <script>
-    require(['scripts/activation', 'scripts/foo'], function(activation, foo) {
-      var testObject = new activation.TestClass(42);
-      console.log('TestObject value: ', testObject.value());
-
-      var fooObject = foo.create(document.getElementById('content'));
-      fooObject.setState({title: 'Custom title'});
+    require(['scripts/entry-point'], function(entryPoint) {
+      entryPoint.run(document.getElementById("content"));
     });
   </script>
 </body>

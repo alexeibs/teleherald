@@ -1,3 +1,32 @@
 body {
   background: #def;
 }
+
+table.activation-view {
+  border-collapse: collapse;
+}
+
+table.activation-view td, table.activation-view th {
+  background: white;
+  border: 1px solid gray;
+  min-width: 90px;
+  padding: 2px 4px;
+  font: 16px Tahoma,Arial;
+  text-align: left;
+}
+
+table.activation-view th {
+  background: #f0f0f0;
+}
+
+table.activation-view .col1 {
+  min-width: 150px;
+}
+
+table.activation-view .col2 {
+  min-width: 150px;
+}
+
+table.activation-view .col3 {
+  min-width: 100px;
+}

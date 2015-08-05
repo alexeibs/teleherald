@@ -1,0 +1,5 @@
+[
+    {"token": "tok1", "chatName": "Chat #11", "code": 123456},
+    {"token": "tok2", "chatName": "Chat #22", "code": 456789},
+    {"token": "tok3", "chatName": "Chat #33", "code": 344393}
+]
