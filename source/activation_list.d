@@ -17,7 +17,7 @@ interface ActivationRestInterface {
 }
 
 interface ActivationList : ActivationRestInterface {
-  void activateChat(string chatName, int activationCode, int chatId);
+  bool activateChat(string chatName, uint activationCode, int chatId);
 }
 
 ActivationList createActivationList(ChatCreator chatCreator) {
@@ -45,7 +45,7 @@ private class ActivationListImpl : ActivationList {
     return entry;
   }
 
-  void activateChat(string chatName, int activationCode, int chatId) {
+  bool activateChat(string chatName, uint activationCode, int chatId) {
     auto chat = chatName in tokensByChatNames_;
     if (chat && chat.code == activationCode) {
       string token = chat.token;
@@ -53,7 +53,9 @@ private class ActivationListImpl : ActivationList {
       tokenGenerator_.forgetActivationCode(activationCode);
 
       chatCreator_.createNewChat(chat.token, chatId, chatName);
+      return true;
     }
+    return false;
   }
 
   private ActivationEntry[string] tokensByChatNames_;
@@ -101,15 +103,15 @@ unittest {
   activationList.postActivationList("chat1"); // does nothing second time
   assertEqual(activationList.getActivationList().length, 1);
 
-  activationList.activateChat("chat2", code, 35); // unknown chat
+  assertFalse(activationList.activateChat("chat2", code, 35)); // unknown chat
   assertEqual(FakeCreator.callCount, 0);
   assertEqual(activationList.getActivationList().length, 1);
 
-  activationList.activateChat("chat1", code + 1, 35); // incorrect code
+  assertFalse(activationList.activateChat("chat1", code + 1, 35)); // incorrect code
   assertEqual(FakeCreator.callCount, 0);
   assertEqual(activationList.getActivationList().length, 1);
 
-  activationList.activateChat("chat1", code, 35);
+  assertTrue(activationList.activateChat("chat1", code, 35));
   assertEqual(FakeCreator.callCount, 1);
   assertEqual(FakeCreator.lastId, 35);
   assertEqual(FakeCreator.lastChatName, "chat1");

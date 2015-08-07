@@ -22,6 +22,7 @@ __gshared Task g_keeperTask;
 
 enum ActivationTag {_};
 enum ChatTag {_};
+enum TestTag {_};
 
 void runKeeperTask()
 {
@@ -44,6 +45,9 @@ void runKeeperTask()
         },
         (ChatTag _, Task target) {
           target.send(chatCollection.getChatList());
+        },
+        (TestTag _, Task target, string chatName, uint code, int chatId) {
+          target.send(activationList.activateChat(chatName, code, chatId));
         });
     }
   });
@@ -68,6 +72,17 @@ class ChatRestInterfaceImpl : ChatRestInterface {
   }
 }
 
+interface TestInterface {
+  bool postActivationCode(string chatName, uint code, int chatId);
+}
+
+class TestInterfaceImpl : TestInterface {
+  bool postActivationCode(string chatName, uint code, int chatId) {
+    g_keeperTask.send(TestTag._, Task.getThis(), chatName, code, chatId);
+    return receiveOnly!bool;
+  }
+}
+
 void showActivationView(HTTPServerRequest request, HTTPServerResponse response) {
   response.render!("activation.dt", request);
 }
@@ -89,6 +104,7 @@ shared static this() {
   router.get(basePath, &showActivationView);
   router.registerRestInterface(new ActivationRestInterfaceImpl, restBasePath, MethodStyle.camelCase);
   router.registerRestInterface(new ChatRestInterfaceImpl, restBasePath, MethodStyle.camelCase);
+  router.registerRestInterface(new TestInterfaceImpl, restBasePath, MethodStyle.camelCase);
   router.get("*", serveStaticFiles("./public/"));
 
   auto settings = new HTTPServerSettings;
