@@ -1,39 +1,48 @@
 import std.random;
 
 import common_types;
-import chat_collection;
 import token_generator;
 
-interface ActivationList {
-  void makeActivationCode(string chatName);
-  void activateChat(string chatName, int activationCode, int chatId);
-}
-
-ActivationList createActivationList(ActivationView view, ChatCreator chatCreator) {
-  return new ActivationListImpl(view, chatCreator);
-}
-
-private struct TokenWithCode {
+struct ActivationEntry {
   string token;
+  string chatName;
   uint code;
 }
 
+alias ActivationEntries = immutable(ActivationEntry)[];
+
+interface ActivationRestInterface {
+  ActivationEntries getActivationList();
+  ActivationEntry postActivationList(string chatName);
+}
+
+interface ActivationList : ActivationRestInterface {
+  void activateChat(string chatName, int activationCode, int chatId);
+}
+
+ActivationList createActivationList(ChatCreator chatCreator) {
+  return new ActivationListImpl(chatCreator);
+}
+
 private class ActivationListImpl : ActivationList {
-  this(ActivationView view, ChatCreator chatCreator) {
-    view_ = view;
+  this(ChatCreator chatCreator) {
     chatCreator_ = chatCreator;
     tokenGenerator_ = createTokenGenerator(new MersenneRandomGenerator);
   }
 
-  void makeActivationCode(string chatName) {
-    if (chatName !in tokensByChatNames_) {
-      TokenWithCode tokenWithCode;
-      tokenWithCode.token = tokenGenerator_.getToken();
-      tokenWithCode.code = tokenGenerator_.getActivationCode();
-      tokensByChatNames_[chatName] = tokenWithCode;
+  ActivationEntries getActivationList() {
+    return cast(immutable)tokensByChatNames_.values.dup;
+  }
 
-      view_.showCode(tokenWithCode.code);
+  ActivationEntry postActivationList(string chatName) {
+    ActivationEntry entry;
+    if (chatName !in tokensByChatNames_) {
+      entry.token = tokenGenerator_.getToken();
+      entry.code = tokenGenerator_.getActivationCode();
+      entry.chatName = chatName;
+      tokensByChatNames_[chatName] = entry;
     }
+    return entry;
   }
 
   void activateChat(string chatName, int activationCode, int chatId) {
@@ -44,13 +53,11 @@ private class ActivationListImpl : ActivationList {
       tokenGenerator_.forgetActivationCode(activationCode);
 
       chatCreator_.createNewChat(chat.token, chatId);
-      view_.showToken(chat.token);
     }
   }
 
-  private TokenWithCode[string] tokensByChatNames_;
+  private ActivationEntry[string] tokensByChatNames_;
   private TokenGenerator tokenGenerator_;
-  private ActivationView view_;
   private ChatCreator chatCreator_;
 }
 
@@ -70,22 +77,6 @@ private class MersenneRandomGenerator : RandomNumberGenerator {
 unittest {
   import dunit.toolkit;
 
-  static class FakeView : ActivationView {
-    static int codeCount;
-    static int lastCode;
-    static int tokenCount;
-    static string lastToken;
-
-    void showCode(uint code) {
-      ++codeCount;
-      lastCode = code;
-    }
-    void showToken(string token) {
-      ++tokenCount;
-      lastToken = token;
-    }
-  }
-
   static class FakeCreator : ChatCreator {
     static int callCount;
     static ChatId lastId;
@@ -96,28 +87,31 @@ unittest {
     }
   }
 
-  auto activationList = createActivationList(new FakeView, new FakeCreator);
+  auto activationList = createActivationList(new FakeCreator);
+  assertEqual(activationList.getActivationList().length, 0);
 
-  activationList.makeActivationCode("chat1");
-  assertEqual(FakeView.codeCount, 1);
+  activationList.postActivationList("chat1");
+  auto list = activationList.getActivationList();
+  assertEqual(list.length, 1);
+  assertEqual(list[0].chatName, "chat1");
+  uint code = list[0].code;
 
-  activationList.makeActivationCode("chat1"); // does nothing second time
-  assertEqual(FakeView.codeCount, 1);
+  activationList.postActivationList("chat1"); // does nothing second time
+  assertEqual(activationList.getActivationList().length, 1);
 
-
-  activationList.activateChat("chat2", FakeView.lastCode, 35); // unknown chat
+  activationList.activateChat("chat2", code, 35); // unknown chat
   assertEqual(FakeCreator.callCount, 0);
-  assertEqual(FakeView.tokenCount, 0);
+  assertEqual(activationList.getActivationList().length, 1);
 
-  activationList.activateChat("chat1", FakeView.lastCode + 1, 35); // incorrect code
+  activationList.activateChat("chat1", code + 1, 35); // incorrect code
   assertEqual(FakeCreator.callCount, 0);
-  assertEqual(FakeView.tokenCount, 0);
+  assertEqual(activationList.getActivationList().length, 1);
 
-  activationList.activateChat("chat1", FakeView.lastCode, 35);
+  activationList.activateChat("chat1", code, 35);
   assertEqual(FakeCreator.callCount, 1);
   assertEqual(FakeCreator.lastId, 35);
-  assertEqual(FakeView.tokenCount, 1);
+  assertEqual(activationList.getActivationList().length, 0);
 
-  activationList.makeActivationCode("chat1"); // now we can get a new code
-  assertEqual(FakeView.codeCount, 2);
+  activationList.postActivationList("chat1"); // now we can get a new code
+  assertEqual(activationList.getActivationList().length, 1);
 }
