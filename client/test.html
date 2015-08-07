@@ -10,7 +10,10 @@
   <div id="content"></div>
   <script>
     require(['scripts/entry-point'], function(entryPoint) {
-      entryPoint.run(document.getElementById("content"));
+      entryPoint.run({
+        viewContainer: document.getElementById('content'),
+        requestBasePath: location.href.slice(0, location.href.lastIndexOf('/'))
+      });
     });
   </script>
 </body>

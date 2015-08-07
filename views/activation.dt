@@ -4,5 +4,8 @@ block body
   #content
   script(type='text/javascript').
     require(['scripts/entry-point'], function(entryPoint) {
-      entryPoint.run(document.getElementById("content"));
+      entryPoint.run({
+        viewContainer: document.getElementById("content"),
+        requestBasePath: location.pathname
+      });
     });
