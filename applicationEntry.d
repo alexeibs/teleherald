@@ -20,17 +20,30 @@ import config;
 
 __gshared Task g_keeperTask;
 
+enum ActivationTag {_};
+enum ChatTag {_};
+
 void runKeeperTask()
 {
-  auto activationList = createActivationList(null);
+  static class FakeChatServer : ChatServer {
+    void sendMessage(ChatId chat, string message) {
+      logInfo("ChatServer.sendMessage: ", message, chat);
+    }
+  }
+
+  auto chatCollection = createChatCollection(new FakeChatServer);
+  auto activationList = createActivationList(chatCollection);
   g_keeperTask = runTask({
     while (true) {
       receive(
-        (Task target) {
+        (ActivationTag _, Task target) {
           target.send(activationList.getActivationList());
         },
-        (Task target, string chatName) {
+        (ActivationTag _, Task target, string chatName) {
           target.send(activationList.postActivationList(chatName));
+        },
+        (ChatTag _, Task target) {
+          target.send(chatCollection.getChatList());
         });
     }
   });
@@ -39,12 +52,19 @@ void runKeeperTask()
 
 class ActivationRestInterfaceImpl : ActivationRestInterface {
   ActivationEntries getActivationList() {
-    g_keeperTask.send(Task.getThis());
+    g_keeperTask.send(ActivationTag._, Task.getThis());
     return receiveOnly!ActivationEntries;
   }
   ActivationEntry postActivationList(string chatName) {
-    g_keeperTask.send(Task.getThis(), chatName);
+    g_keeperTask.send(ActivationTag._, Task.getThis(), chatName);
     return receiveOnly!ActivationEntry;
+  }
+}
+
+class ChatRestInterfaceImpl : ChatRestInterface {
+  ChatList getChatList() {
+    g_keeperTask.send(ChatTag._, Task.getThis());
+    return receiveOnly!ChatList;
   }
 }
 
@@ -64,9 +84,11 @@ shared static this() {
   auto config = parseConfig(json);
 
   string basePath = "/" ~ config.activatorPath();
+  string restBasePath = basePath ~ "/";
   auto router = new URLRouter;
   router.get(basePath, &showActivationView);
-  router.registerRestInterface(new ActivationRestInterfaceImpl, basePath ~ "/", MethodStyle.camelCase);
+  router.registerRestInterface(new ActivationRestInterfaceImpl, restBasePath, MethodStyle.camelCase);
+  router.registerRestInterface(new ChatRestInterfaceImpl, restBasePath, MethodStyle.camelCase);
   router.get("*", serveStaticFiles("./public/"));
 
   auto settings = new HTTPServerSettings;
