@@ -7,6 +7,7 @@ import vibe.core.args;
 import vibe.core.concurrency;
 import vibe.core.core;
 import vibe.core.log;
+import vibe.http.fileserver;
 import vibe.http.router;
 import vibe.http.server;
 import vibe.web.rest;
@@ -47,7 +48,7 @@ class ActivationRestInterfaceImpl : ActivationRestInterface {
   }
 }
 
-void showCode(HTTPServerRequest request, HTTPServerResponse response) {
+void showActivationView(HTTPServerRequest request, HTTPServerResponse response) {
   response.render!("activation.dt", request);
 }
 
@@ -62,10 +63,11 @@ shared static this() {
   }
   auto config = parseConfig(json);
 
+  string basePath = "/" ~ config.activatorPath();
   auto router = new URLRouter;
-  router.get("/" ~ config.activatorPath(), &showCode);
-  router.registerRestInterface(new ActivationRestInterfaceImpl,
-      "/" ~ config.activatorPath() ~ "/", MethodStyle.camelCase);
+  router.get(basePath, &showActivationView);
+  router.registerRestInterface(new ActivationRestInterfaceImpl, basePath ~ "/", MethodStyle.camelCase);
+  router.get("*", serveStaticFiles("./public/"));
 
   auto settings = new HTTPServerSettings;
   settings.port = 8080;

@@ -1,6 +1,9 @@
 doctype html
 html
   head
+    meta(charset='UTF8')
     title Teleherald
+    link(rel='stylesheet', type='text/css', href='styles/style.css')
+    script(type='text/javascript', src='vendor/requirejs/require.js')
   body
     block body

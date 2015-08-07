@@ -1,5 +1,8 @@
 extends layout
 
 block body
-  h1 Activation page
-  p code
+  #content
+  script(type='text/javascript').
+    require(['scripts/entry-point'], function(entryPoint) {
+      entryPoint.run(document.getElementById("content"));
+    });
