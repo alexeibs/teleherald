@@ -52,7 +52,7 @@ private class ActivationListImpl : ActivationList {
       tokensByChatNames_.remove(chatName);
       tokenGenerator_.forgetActivationCode(activationCode);
 
-      chatCreator_.createNewChat(chat.token, chatId);
+      chatCreator_.createNewChat(chat.token, chatId, chatName);
     }
   }
 
@@ -80,10 +80,12 @@ unittest {
   static class FakeCreator : ChatCreator {
     static int callCount;
     static ChatId lastId;
+    static string lastChatName;
 
-    void createNewChat(string token, ChatId id) {
+    void createNewChat(string token, ChatId id, string chatName) {
       ++callCount;
       lastId = id;
+      lastChatName = chatName;
     }
   }
 
@@ -110,6 +112,7 @@ unittest {
   activationList.activateChat("chat1", code, 35);
   assertEqual(FakeCreator.callCount, 1);
   assertEqual(FakeCreator.lastId, 35);
+  assertEqual(FakeCreator.lastChatName, "chat1");
   assertEqual(activationList.getActivationList().length, 0);
 
   activationList.postActivationList("chat1"); // now we can get a new code

@@ -8,7 +8,7 @@ interface ChatServer {
 }
 
 interface ChatCreator {
-  void createNewChat(string token, ChatId id);
+  void createNewChat(string token, ChatId id, string chatName);
 }
 
 interface ActivationView {
