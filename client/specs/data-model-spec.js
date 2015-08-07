@@ -66,7 +66,7 @@ define(['scripts/data-model'], function(DataModel) {
 
       dataModel.addNewChat('New chat');
       expect(server.post.calls.count()).toBe(1);
-      expect(server.post.calls.mostRecent().args).toEqual(['activationList', {chatName: 'New chat'}]);
+      expect(server.post.calls.mostRecent().args).toEqual(['activationList', '{"chatName":"New chat"}']);
 
       dataModel.stopPolling();
     });

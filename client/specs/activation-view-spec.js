@@ -1,4 +1,5 @@
 /* global describe, it, expect */
+/* global jasmine, beforeEach, afterEach */
 
 define(['scripts/activation-view.jsx'], function(ActivationView) {
 
@@ -25,15 +26,22 @@ define(['scripts/activation-view.jsx'], function(ActivationView) {
   }
 
   describe('activation-view.jsx', function() {
+    var testDiv;
+
+    beforeEach(function() {
+      testDiv = document.createElement('div');
+      document.body.appendChild(testDiv);
+    });
+    afterEach(function() {
+      document.body.removeChild(testDiv);
+    });
+
     it('Check table content', function() {
       var testData = [
         {token: 'tok1', chatName: 'Chat #11', code: 123456},
         {token: 'tok2', chatName: 'Chat #22', code: 456789},
         {token: 'tok3', chatName: 'Chat #33', code: 344393}
       ];
-
-      var testDiv = document.createElement('div');
-      document.body.appendChild(testDiv);
 
       var view = ActivationView.create(testDiv);
       view.setState({data: testData});
@@ -44,8 +52,16 @@ define(['scripts/activation-view.jsx'], function(ActivationView) {
         ['tok2', 'Chat #22', '456789'],
         ['tok3', 'Chat #33', '344393']
       ]);
+    });
 
-      document.body.removeChild(testDiv);
+    it('Check submit', function() {
+      var onSubmit = jasmine.createSpy('onSubmit');
+      ActivationView.create(testDiv, onSubmit);
+
+      var form = testDiv.querySelector('form');
+      form.chatName.value = ' test chat name ';
+      testDiv.querySelector('button[type=submit]').click();
+      expect(onSubmit).toHaveBeenCalledWith('test chat name');
     });
   });
 });

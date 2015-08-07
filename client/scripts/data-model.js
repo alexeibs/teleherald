@@ -23,7 +23,7 @@ define([], function() {
   };
 
   DataModel.prototype.addNewChat = function(chatName) {
-    this._server.post('activationList', {chatName: chatName});
+    this._server.post('activationList', JSON.stringify({chatName: chatName}));
   };
 
   DataModel.prototype._askForActivationList = function() {

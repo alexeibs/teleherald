@@ -1,6 +1,6 @@
 define(['vendor/react/react'], function(React) {
 
-  var ActivationViewHeader = React.createClass({
+  var ActivationTableHeader = React.createClass({
     render: function() {
       return (
         <thead>
@@ -14,7 +14,7 @@ define(['vendor/react/react'], function(React) {
     }
   });
 
-  var ActivationViewEntry = React.createClass({
+  var ActivationTableEntry = React.createClass({
     render: function() {
       return (
         <tr>
@@ -26,29 +26,57 @@ define(['vendor/react/react'], function(React) {
     }
   });
 
-  var ActivationView = React.createClass({
-    getInitialState: function() {
-      return {data: []};
-    },
+  var ActivationTable = React.createClass({
     render: function() {
-      var entries = this.state.data.map(function(entry) {
+      var entries = this.props.data.map(function(entry) {
         return (
-          <ActivationViewEntry key={entry.token} token={entry.token} chatName={entry.chatName} code={entry.code} />
+          <ActivationTableEntry key={entry.token} token={entry.token} chatName={entry.chatName} code={entry.code} />
         );
       });
 
       return (
         <table className="activation-view">
-          <ActivationViewHeader />
+          <ActivationTableHeader />
           {entries}
         </table>
       );
     }
   });
 
+  var ActivationForm = React.createClass({
+    handleSubmit: function(e) {
+      e.preventDefault();
+      var chatName = React.findDOMNode(this.refs.chatName).value.trim();
+      this.props.onNewChatName(chatName);
+    },
+    render: function() {
+      return (
+        <form className="activation-view" onSubmit={this.handleSubmit}>
+          <input name="chatName" type="text" placeholder="Chat name" ref="chatName" />&nbsp;
+          <button type="submit">Add new chat</button>
+        </form>
+      );
+    }
+  });
+
+  var ActivationView = React.createClass({
+    getInitialState: function() {
+      return {data: []};
+    },
+    render: function() {
+      return (
+        <div>
+          <ActivationForm onNewChatName={this.props.onNewChatName} />
+          <br />
+          <ActivationTable data={this.state.data} />
+        </div>
+      );
+    }
+  });
+
   return {
-    create: function createActivationView(parent) {
-      return React.render(<ActivationView />, parent);
+    create: function(parent, onNewChatName) {
+      return React.render(<ActivationView onNewChatName={onNewChatName} />, parent);
     }
   };
 });
