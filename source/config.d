@@ -26,11 +26,11 @@ private class ConfigImpl  : Config {
     return value && value.type == JSON_TYPE.STRING ? value.str : "";
   }
 
-  string appToken() {
+  string appToken() const {
     return appToken_;
   }
 
-  string activatorPath() {
+  string activatorPath() const {
     return activatorPath_;
   }
 
