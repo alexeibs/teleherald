@@ -13,6 +13,7 @@ import vibe.http.client;
 import vibe.http.fileserver;
 import vibe.http.router;
 import vibe.http.server;
+import vibe.stream.operations : readAllUTF8;
 import vibe.web.rest;
 
 import activation_list;
@@ -71,7 +72,7 @@ void runTelegramUpdater() {
         (scope request) {},
         (scope response) {
           try {
-            foreach (update; getTelegramUpdates(response)) {
+            foreach (update; getTelegramUpdates(new JsonResponseImpl(response))) {
               int id = update.id();
               if (maxId < id) {
                 maxId = id;
@@ -91,6 +92,26 @@ void runTelegramUpdater() {
     }
   });
   runEventLoop();
+}
+
+class JsonResponseImpl : JsonResponse {
+  this(HTTPClientResponse response) {
+    response_ = response;
+  }
+
+  int statusCode() const {
+    return response_.statusCode;
+  }
+
+  string rawResponse() {
+    return response_.bodyReader.readAllUTF8();
+  }
+
+  Json json() {
+    return response_.readJson();
+  }
+
+  private HTTPClientResponse response_;
 }
 
 class ActivationRestInterfaceImpl : ActivationRestInterface {
