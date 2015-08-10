@@ -2,6 +2,7 @@ import std.conv;
 import std.file;
 import std.stdio;
 import std.string;
+import std.regex;
 
 import core.time : msecs;
 
@@ -51,6 +52,9 @@ void runCommandProcessor() {
         (ActivationTag _, Task target, string chatName) {
           target.send(activationList.postActivationList(chatName));
         },
+        (ActivationTag _, string chatName, uint code, int chatId) {
+          activationList.activateChat(chatName, code, chatId);
+        },
         (ChatTag _, Task target) {
           target.send(chatCollection.getChatList());
         },
@@ -67,6 +71,8 @@ void runTelegramUpdater() {
     string updateUrl = TELEGRAM_BOT_URL ~ g_config.appToken ~ "/getUpdates?offset=";
     int maxId = -1;
 
+    auto activationFilter = ctRegex!(q"{^\/start\s+(\d{6,6})\s*$}");
+
     while (true) {
       requestHTTP(updateUrl ~ to!string(maxId + 1),
         (scope request) {},
@@ -82,6 +88,12 @@ void runTelegramUpdater() {
               auto chat = message.chat();
               auto text = message.text();
               logInfo("Chat \"%s\": \"%s\" wrote \"%s\"", chat.chatName(), from.chatName(), text);
+              auto activationMatch = text.match(activationFilter);
+              if (!activationMatch.empty) {
+                uint code = activationMatch.captures[1].to!uint;
+                logInfo("Activation code received: %d", code);
+                g_commandProcessor.send(ActivationTag._, chat.chatName(), code, chat.chatId());
+              }
             }
           } catch (Exception error) {
             logError("Error: %s", error.msg);
