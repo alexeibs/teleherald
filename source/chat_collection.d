@@ -1,3 +1,5 @@
+import std.algorithm;
+
 import common_types;
 
 struct Chat {
@@ -89,35 +91,43 @@ unittest {
     assertNull(FakeServer.lastMessage);
   }
 
+  static void assertEqualLists(A, B)(A actual, B expectation) {
+    assertEqual(actual.length, expectation.length);
+    auto sorted = sort!("a.id < b.id")(actual.dup);
+    for (int i = 0; i < actual.length; ++i) {
+      assertEqual(sorted[i], expectation[i]);
+    }
+  }
+
   assertNoChat("t1", "ping");
   chats.createNewChat("t1", 1, "chat1");
   assertChatExists(1, "t1", "ping1");
-  assertEqual(chats.getChatList(), [Chat("t1", "chat1", 1)]);
+  assertEqualLists(chats.getChatList(), [Chat("t1", "chat1", 1)]);
 
   chats.createNewChat("t2", 2, "chat2");
   assertChatExists(2, "t2", "ping2");
-  assertEqual(chats.getChatList(), [Chat("t1", "chat1", 1), Chat("t2", "chat2", 2)]);
+  assertEqualLists(chats.getChatList(), [Chat("t1", "chat1", 1), Chat("t2", "chat2", 2)]);
 
   chats.createNewChat("t3", 1, "chat3"); // id already exists
   assertNoChat("t3", "ping3");
-  assertEqual(chats.getChatList(), [Chat("t1", "chat1", 1), Chat("t2", "chat2", 2)]);
+  assertEqualLists(chats.getChatList(), [Chat("t1", "chat1", 1), Chat("t2", "chat2", 2)]);
 
   chats.createNewChat("t2", 3, "chat3"); // token already exists
   assertChatExists(2, "t2", "ping4");
-  assertEqual(chats.getChatList(), [Chat("t1", "chat1", 1), Chat("t2", "chat2", 2)]);
+  assertEqualLists(chats.getChatList(), [Chat("t1", "chat1", 1), Chat("t2", "chat2", 2)]);
 
   chats.removeChat(5);
   assertChatExists(2, "t2", "ping5");
   assertChatExists(1, "t1", "ping6");
-  assertEqual(chats.getChatList(), [Chat("t1", "chat1", 1), Chat("t2", "chat2", 2)]);
+  assertEqualLists(chats.getChatList(), [Chat("t1", "chat1", 1), Chat("t2", "chat2", 2)]);
 
   chats.removeChat(1);
   assertNoChat("t1", "ping7");
   assertChatExists(2, "t2", "ping8");
-  assertEqual(chats.getChatList(), [Chat("t2", "chat2", 2)]);
+  assertEqualLists(chats.getChatList(), [Chat("t2", "chat2", 2)]);
 
   chats.removeChat(2);
   assertNoChat("t1", "ping9");
   assertNoChat("t2", "ping10");
-  assertEqual(chats.getChatList(), []);
+  assertEqualLists(chats.getChatList(), new Chat[0]);
 }

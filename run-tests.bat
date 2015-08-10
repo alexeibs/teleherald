@@ -1,7 +1,7 @@
 @echo off
 
 echo --- Build tests.exe ---
-dub build -b unittest -c unittests
+dub build -b unittest -c unittests %*
 if ERRORLEVEL 1 goto build_error
 
 echo --- Run tests without coverage ---
