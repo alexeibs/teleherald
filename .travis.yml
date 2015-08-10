@@ -5,7 +5,7 @@ node_js:
 
 before_script:
   - wget -O doveralls "https://github.com/ColdenCullen/doveralls/releases/download/v1.1.5/doveralls_linux_travis"
-  - chmod +x doveralls_linux_travis
+  - chmod +x doveralls
   - npm install -g grunt-cli
   - npm install -g bower
   - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
@@ -17,4 +17,4 @@ before_script:
 script:
   - cd client && grunt && cd .. || (cd .. && false)
   - dub test --compiler=${DC} -b unittest-cov
-  - ./doveralls_linux_travis -t ${COVERALL_TOKEN}
+  - ./doveralls -t ${COVERALL_TOKEN}
