@@ -35,13 +35,22 @@ enum TestTag {_};
 immutable string TELEGRAM_BOT_URL = "https://api.telegram.org/bot";
 
 void runCommandProcessor() {
-  static class FakeChatServer : ChatServer {
+
+  static class TemporaryChatServer : ChatServer {
     void sendMessage(ChatId chat, string message) {
-      logInfo("ChatServer.sendMessage: ", message, chat);
+      string baseUrl = TELEGRAM_BOT_URL ~ g_config.appToken;
+      requestHTTP(format("%s/sendMessage?chat_id=%d&text=%s", baseUrl, chat, message),
+        (scope request) {},
+        (scope response) {
+          // TODO check response
+          logInfo("Telegram response: %s", new JsonResponseImpl(response).rawResponse());
+        }
+      );
+      logInfo("ChatServer.sendMessage: id = %d, message = %s", chat, message);
     }
   }
 
-  auto chatCollection = createChatCollection(new FakeChatServer);
+  auto chatCollection = createChatCollection(new TemporaryChatServer);
   auto activationList = createActivationList(chatCollection);
   g_commandProcessor = runTask({
     while (true) {
@@ -60,6 +69,9 @@ void runCommandProcessor() {
         },
         (TestTag _, Task target, string chatName, uint code, int chatId) {
           target.send(activationList.activateChat(chatName, code, chatId));
+        },
+        (TestTag _, string chatToken, string message) {
+          chatCollection.sendMessage(chatToken, message);
         });
     }
   });
@@ -146,12 +158,18 @@ class ChatRestInterfaceImpl : ChatRestInterface {
 
 interface TestInterface {
   bool postActivationCode(string chatName, uint code, int chatId);
+  bool postTelegramMessage(string token, string message);
 }
 
 class TestInterfaceImpl : TestInterface {
   bool postActivationCode(string chatName, uint code, int chatId) {
     g_commandProcessor.send(TestTag._, Task.getThis(), chatName, code, chatId);
     return receiveOnly!bool;
+  }
+  bool postTelegramMessage(string token, string message) {
+    g_commandProcessor.send(TestTag._, token, message);
+    // FIXME return real result
+    return true;
   }
 }
 
